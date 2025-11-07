@@ -13,10 +13,10 @@
 // Student authors (fill in below):
 // NMec:
 // Name:
-// NMec: 125031
-// Name: Gil Guedes
+// NMec:
+// Name:
 //
-// Start Date 6/11/2025:
+// Date:
 //
 
 #include "imageRGB.h"
@@ -608,8 +608,11 @@ Image ImageRotate180CW(const Image img) {
 }
 
 /// Check whether pixel coords (u, v) are inside img.
-int ImageIsValidPixel(Image img, int u, int v) {
-  return 0 <= u && u <= (int)img->width && 0 <= v && v <= (int)img->height;
+/// ATTENTION
+///   u : column index
+///   v : row index
+int ImageIsValidPixel(const Image img, int u, int v) {
+  return 0 <= u && u < (int)img->width && 0 <= v && v < (int)img->height;
 }
 
 /// Region Growing

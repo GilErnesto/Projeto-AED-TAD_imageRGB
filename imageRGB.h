@@ -81,7 +81,6 @@ Image ImageCopy(const Image img);
 /// Output the raw RGB image (i.e., print the integer value of pixel).
 void ImageRAWPrint(const Image img);
 
-
 /// PBM file operations --- For BW images
 
 /// Load a raw PBM file.
@@ -157,7 +156,10 @@ Image ImageRotate90CW(const Image img);
 Image ImageRotate180CW(const Image img);
 
 /// Check whether pixel coords (u, v) are inside img.
-int ImageIsValidPixel(Image img, int u, int v);
+/// ATTENTION
+///   u : column index
+///   v : row index
+int ImageIsValidPixel(const Image img, int u, int v);
 
 /// Region Growing
 
@@ -170,7 +172,7 @@ int ImageIsValidPixel(Image img, int u, int v);
 ///   img: The image to operate on (and modify).
 ///   u, v: the coordinates of the seed pixel.
 ///   label: the new color label (LUT index) to fill the region with.
-/// 
+///
 /// And return: the number of labeled pixels.
 
 /// Each function carries out a different version of the algorithm.
@@ -185,7 +187,6 @@ int ImageRegionFillingWithSTACK(Image img, int u, int v, uint16 label);
 /// Region growing using a QUEUE of pixel coordinates to
 /// implement the flood-filling algorithm.
 int ImageRegionFillingWithQUEUE(Image img, int u, int v, uint16 label);
-
 
 /// Type: Pointer to a region filling function:
 typedef int (*FillingFunction)(Image img, int u, int v, uint16 label);

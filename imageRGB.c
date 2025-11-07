@@ -284,10 +284,32 @@ void ImageDestroy(Image* imgp) {
 Image ImageCopy(const Image img) {
   assert(img != NULL);
 
-  // TO BE COMPLETED
-  // ...
+  // criar imagem com as dimensões da antiga
+  Image nova_img = ImageCreate(img->width, img->height);
+  
+  if (nova_img == NULL){
+    printf("ERRO: Imagem Copiada está vazia!");  //RETIRAR NA FASE FINAL
+    return NULL;}
 
-  return NULL;
+  // copiar o LUT da outra imagem 
+  nova_img->num_colors = img->num_colors;
+  for (uint16 i = 0; i < img->num_colors; i++) {
+    nova_img->LUT[i] = img->LUT[i];    
+  }
+
+  // copiar os pixeis
+  for (uint32 i = 0; i < img->height; i++) {
+    for (uint32 j = 0; j < img->width; j++) {
+      nova_img->image[i][j] = img->image[i][j];
+      }
+  }
+
+  if (ImageIsEqual(img, nova_img) == 0){
+    printf("ERRO: Imagem Copiada é Diferente da Original!");  //RETIRAR NA FASE FINAL
+    return NULL;}
+
+  printf("Imagem Copiada com sucesso!");  //RETIRAR NA FASE FINAL
+  return nova_img;
 }
 
 /// Printing on the console
@@ -556,10 +578,27 @@ int ImageIsEqual(const Image img1, const Image img2) {
   assert(img1 != NULL);
   assert(img2 != NULL);
 
-  // TO BE COMPLETED
-  // ...
+  // se tem tamanhos diferentes -> logo diferentes
+  if (img1->width != img2->width || img1->height != img2->height) return 0;
 
-  return 0;
+  // pegar na coluna(array)-> for loop para j -> ir à imagem no [i][j] e verificar o valor 
+  for(uint32 i=0; i<img1->height; i++){
+    for(uint32 j=0; j<img1->width; j++){
+      uint16 indexIMG1 = img1->image[i][j];
+      rgb_t colorIMG1 = img1->LUT[indexIMG1];
+
+      uint16 indexIMG2 = img2->image[i][j];
+      rgb_t colorIMG2 = img2->LUT[indexIMG2];
+      
+      if(colorIMG1 != colorIMG2){
+        printf("As Imagens sao diferentes!");  //RETIRAR NA FASE FINAL
+        return 0;
+      }
+    }
+  }
+
+  printf("As Imagens sao iguais!"); //RETIRAR NA FASE FINAL
+  return 1;
 }
 
 int ImageIsDifferent(const Image img1, const Image img2) {

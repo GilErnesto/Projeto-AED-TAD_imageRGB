@@ -13,10 +13,10 @@
 // Student authors (fill in below):
 // NMec:
 // Name:
-// NMec:
-// Name:
+// NMec: 125031
+// Name: Gil Guedes
 //
-// Date:
+// Start Date 6/11/2025:
 //
 
 #include "imageRGB.h"

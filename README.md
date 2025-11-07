@@ -8,6 +8,7 @@ VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=ngtystr
 
 
 ***Features a implmentar***
+LEMBRAR DE TIRAR TUDO QUE DIZ  //RETIRAR NA FASE FINAL
 
 - ImageCopy - Gil
 - ImageIsEqual  - Gil

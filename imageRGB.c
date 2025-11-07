@@ -622,14 +622,33 @@ int ImageIsDifferent(const Image img1, const Image img2) {
 ///
 /// On success, a new image is returned.
 /// (The caller is responsible for destroying the returned image!)
+
 Image ImageRotate90CW(const Image img) {
-  assert(img != NULL);
+    assert(img != NULL);
 
-  // TO BE COMPLETED
-  // ...
+    uint32 oldW = img->width;
+    uint32 oldH = img->height;
 
-  return NULL;
+    // Create new image with swapped width/height
+    Image rotated = AllocateImageHeader(oldH, oldW);
+    rotated->num_colors = img->num_colors;
+    rotated->LUT = img->LUT;  // Same color table (not duplicated)
+
+    // Allocate pixel rows
+    for (uint32 r = 0; r < rotated->height; r++) {
+        rotated->image[r] = AllocateRowArray(rotated->width);
+    }
+
+    // Perform 90 CW rotation: new(r, c) = old(H - 1 - c, r)
+    for (uint32 r = 0; r < rotated->height; r++) {
+        for (uint32 c = 0; c < rotated->width; c++) {
+            rotated->image[r][c] = img->image[oldH - 1 - c][r];
+        }
+    }
+
+    return rotated;
 }
+
 
 /// Rotate 180 degrees clockwise (CW).
 /// Returns a rotated version of the image.
@@ -638,12 +657,30 @@ Image ImageRotate90CW(const Image img) {
 /// On success, a new image is returned.
 /// (The caller is responsible for destroying the returned image!)
 Image ImageRotate180CW(const Image img) {
-  assert(img != NULL);
+    assert(img != NULL);
 
-  // TO BE COMPLETED
-  // ...
+    uint32 width = img->width;
+    uint32 height = img->height;
 
-  return NULL;
+    // Create a new image with the same dimensions
+    Image rotated = AllocateImageHeader(width, height);
+    rotated->num_colors = img->num_colors;
+    rotated->LUT = img->LUT;  // Share the same LUT (not copied)
+
+    // Allocate rows
+    for (uint32 r = 0; r < height; r++) {
+        rotated->image[r] = AllocateRowArray(width);
+    }
+
+    // Perform 180° rotation:
+    // new(r, c) = old(H-1-r, W-1-c)
+    for (uint32 r = 0; r < height; r++) {
+        for (uint32 c = 0; c < width; c++) {
+            rotated->image[r][c] = img->image[height - 1 - r][width - 1 - c];
+        }
+    }
+
+    return rotated;
 }
 
 /// Check whether pixel coords (u, v) are inside img.

@@ -288,7 +288,7 @@ Image ImageCopy(const Image img) {
   Image nova_img = ImageCreate(img->width, img->height);
   
   if (nova_img == NULL){
-    printf("ERRO: Imagem Copiada está vazia!");  //RETIRAR NA FASE FINAL
+    printf("ERRO: Imagem Copiada está vazia!\n");  //RETIRAR NA FASE FINAL
     return NULL;}
 
   // copiar o LUT da outra imagem 
@@ -305,10 +305,10 @@ Image ImageCopy(const Image img) {
   }
 
   if (ImageIsEqual(img, nova_img) == 0){
-    printf("ERRO: Imagem Copiada é Diferente da Original!");  //RETIRAR NA FASE FINAL
+    printf("ERRO: Imagem Copiada é Diferente da Original!\n");  //RETIRAR NA FASE FINAL
     return NULL;}
 
-  printf("Imagem Copiada com sucesso!");  //RETIRAR NA FASE FINAL
+  printf("Imagem Copiada com sucesso!\n");  //RETIRAR NA FASE FINAL
   return nova_img;
 }
 
@@ -591,13 +591,13 @@ int ImageIsEqual(const Image img1, const Image img2) {
       rgb_t colorIMG2 = img2->LUT[indexIMG2];
       
       if(colorIMG1 != colorIMG2){
-        printf("As Imagens sao diferentes!");  //RETIRAR NA FASE FINAL
+        printf("As Imagens sao diferentes!\n");  //RETIRAR NA FASE FINAL
         return 0;
       }
     }
   }
 
-  printf("As Imagens sao iguais!"); //RETIRAR NA FASE FINAL
+  printf("As Imagens sao iguais!\n"); //RETIRAR NA FASE FINAL
   return 1;
 }
 

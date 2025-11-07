@@ -284,10 +284,26 @@ void ImageDestroy(Image* imgp) {
 Image ImageCopy(const Image img) {
   assert(img != NULL);
 
-  // TO BE COMPLETED
-  // ...
+  // criar imagem com as dimensões da antiga
+  Image nova_img = ImageCreate(img->width, img->height);
+  
+  if (nova_img == NULL)
+    return NULL;
 
-  return NULL;
+  // copiar o LUT da outra imagem 
+  nova_img->num_colors = img->num_colors;
+  for (uint16 i = 0; i < img->num_colors; i++) {
+    nova_img->LUT[i] = img->LUT[i];    
+  }
+
+  // copiar os pixeis
+  for (uint32 i = 0; i < img->height; i++) {
+    for (uint32 j = 0; j < img->width; j++) {
+      nova_img->image[i][j] = img->image[i][j];
+      }
+  }
+
+  return nova_img;
 }
 
 /// Printing on the console

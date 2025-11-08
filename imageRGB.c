@@ -726,10 +726,46 @@ int ImageRegionFillingWithSTACK(Image img, int u, int v, uint16 label) {
   assert(ImageIsValidPixel(img, u, v));
   assert(label < FIXED_LUT_SIZE);
 
-  // TO BE COMPLETED
-  // ...
+  // cor original do pixel
+  uint16 original_label = img->image[v][u];
+  if (original_label == label) {
+    return 0;
+  }
 
-  return 0;
+  // criar stack
+  uint32 max_size = img->width * img->height;
+  Stack* stack = StackCreate(max_size);
+  int count = 0;  // Contador de pixels preenchidos
+
+  // adicionar pixel inicial ao stack
+  PixelCoords seed = PixelCoordsCreate(u, v);
+  StackPush(stack, seed);
+
+  while (!StackIsEmpty(stack)){
+    PixelCoords current = StackPop(stack);
+    int x = PixelCoordsGetU(current);
+    int y = PixelCoordsGetV(current);
+
+    // verificar se é válido e tem a cor original
+    if (!ImageIsValidPixel(img, x, y) || img->image[y][x] != original_label) {
+      continue;
+    }
+    
+    // colocar o pixel
+    img->image[y][x] = label;
+    count++;
+    
+    // adicionar vizinhos ao stack
+    if (!StackIsFull(stack)) {
+      StackPush(stack, PixelCoordsCreate(x+1, y));
+      StackPush(stack, PixelCoordsCreate(x-1, y));
+      StackPush(stack, PixelCoordsCreate(x, y+1));
+      StackPush(stack, PixelCoordsCreate(x, y-1));
+    }
+  }
+
+  StackDestroy(&stack);
+  return count;
 }
 
 /// Region growing using a QUEUE of pixel coordinates to
@@ -739,10 +775,43 @@ int ImageRegionFillingWithQUEUE(Image img, int u, int v, uint16 label) {
   assert(ImageIsValidPixel(img, u, v));
   assert(label < FIXED_LUT_SIZE);
 
-  // TO BE COMPLETED
-  // ...
+  // cor original do pixel
+  uint16 original_label = img->image[v][u];
+    if (original_label == label)
+      return 0;
 
-  return 0;
+  // criar queue
+  uint32 max_size = img->width * img->height;
+  Queue *queue = QueueCreate(max_size);
+  int count = 0;  // Contador de pixels preenchidos
+
+  // adicionar o pixel inicial na queue
+  QueueEnqueue(queue, PixelCoordsCreate(u, v));
+
+  while (!QueueIsEmpty(queue)) {
+    PixelCoords current = QueueDequeue(queue);
+    int x = PixelCoordsGetU(current);
+    int y = PixelCoordsGetV(current);
+
+    // verificar se é válido e tem a cor original
+    if (!ImageIsValidPixel(img, x, y) || img->image[y][x] != original_label)
+      continue;
+
+    // colocar o pixel
+    img->image[y][x] = label;
+    count++;
+
+    // adicionar vizinhos à queue
+    if (!QueueIsFull(queue)) {
+      QueueEnqueue(queue, PixelCoordsCreate(x + 1, y));
+      QueueEnqueue(queue, PixelCoordsCreate(x - 1, y));
+      QueueEnqueue(queue, PixelCoordsCreate(x, y + 1));
+      QueueEnqueue(queue, PixelCoordsCreate(x, y - 1));
+    }
+  }
+
+    QueueDestroy(&queue);
+    return count;
 }
 
 /// Image Segmentation

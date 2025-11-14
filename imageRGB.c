@@ -587,6 +587,9 @@ int ImageIsEqual(const Image img1, const Image img2) {
       uint16 indexIMG2 = img2->image[i][j];
       rgb_t colorIMG2 = img2->LUT[indexIMG2];
       
+      // Instrumentação: contar comparações de pixels
+      InstrCount[0]++;
+
       if(colorIMG1 != colorIMG2){
         return 0;
       }

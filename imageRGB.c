@@ -630,7 +630,11 @@ Image ImageRotate90CW(const Image img) {
     // Create new image with swapped width/height
     Image rotated = AllocateImageHeader(oldH, oldW);
     rotated->num_colors = img->num_colors;
-    rotated->LUT = img->LUT;  // Same color table (not duplicated)
+    
+    // Copy LUT
+    for (uint16 i = 0; i < img->num_colors; i++) {
+        rotated->LUT[i] = img->LUT[i];
+    }
 
     // Allocate pixel rows
     for (uint32 r = 0; r < rotated->height; r++) {
@@ -663,7 +667,11 @@ Image ImageRotate180CW(const Image img) {
     // Create a new image with the same dimensions
     Image rotated = AllocateImageHeader(width, height);
     rotated->num_colors = img->num_colors;
-    rotated->LUT = img->LUT;  // Share the same LUT (not copied)
+    
+    // Copy LUT (não compartilhar ponteiro)
+    for (uint16 i = 0; i < img->num_colors; i++) {
+        rotated->LUT[i] = img->LUT[i];
+    }
 
     // Allocate rows
     for (uint32 r = 0; r < height; r++) {

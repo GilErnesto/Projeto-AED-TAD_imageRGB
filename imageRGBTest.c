@@ -238,6 +238,138 @@ int main(int argc, char* argv[]) {
   test_imageEqual_performance(100, "100x100");
   test_imageEqual_performance(200, "200x200");
 
+  // ============== TESTES DE ROTAÇÃO ==============
+  printf("13) Testes das Funções de Rotação\n");
+  printf("=====================================\n");
+  
+  // imagem de teste
+  printf("Criando imagem de teste 8x6 para rotações:\n");
+  Image test_rotate = ImageCreateChess(8, 6, 2, 0xff0000);
+  
+  if (test_rotate != NULL) {
+    printf("SUCCESS: Imagem de teste para rotação criada!\n");
+    printf("Imagem original (8x6):\n");
+    ImageRAWPrint(test_rotate);
+  
+    if (ImageSavePPM(test_rotate, "img/original_8x6.ppm") == 0) {
+      printf("SUCCESS: Imagem original salva em img/original_8x6.ppm!\n");
+    }
+    
+    // Rotação 90° CW
+    printf("\nTeste ImageRotate90CW:\n");
+    Image rotated_90 = ImageRotate90CW(test_rotate);
+    
+    if (rotated_90 != NULL) {
+      printf("SUCCESS: Rotação 90° CW executada!\n");
+      printf("Dimensões: %ux%u -> %ux%u\n", 
+             ImageWidth(test_rotate), ImageHeight(test_rotate),
+             ImageWidth(rotated_90), ImageHeight(rotated_90));
+      printf("Imagem rotacionada 90° CW (6x8):\n");
+      ImageRAWPrint(rotated_90);
+      
+      if (ImageSavePPM(rotated_90, "img/rotated_90cw.ppm") == 0) {
+        printf("SUCCESS: Rotação 90° salva em img/rotated_90cw.ppm!\n");
+      }
+      
+      // verificar se dimensões
+      if (ImageWidth(rotated_90) == ImageHeight(test_rotate) && 
+          ImageHeight(rotated_90) == ImageWidth(test_rotate)) {
+        printf("SUCCESS: Dimensões da rotação 90° estão corretas!\n");
+      } else {
+        printf("ERRO: Dimensões da rotação 90° incorretas!\n");
+      }
+    } else {
+      printf("ERRO: Falha na rotação 90° CW!\n");
+    }
+    
+    // Rotação 180° CW
+    printf("\nTeste ImageRotate180CW:\n");
+    Image rotated_180 = ImageRotate180CW(test_rotate);
+    
+    if (rotated_180 != NULL) {
+      printf("SUCCESS: Rotação 180° CW executada!\n");
+      printf("Dimensões: %ux%u -> %ux%u\n", 
+             ImageWidth(test_rotate), ImageHeight(test_rotate),
+             ImageWidth(rotated_180), ImageHeight(rotated_180));
+      printf("Imagem rotacionada 180° CW (8x6):\n");
+      ImageRAWPrint(rotated_180);
+      
+      if (ImageSavePPM(rotated_180, "img/rotated_180cw.ppm") == 0) {
+        printf("SUCCESS: Rotação 180° salva em img/rotated_180cw.ppm!\n");
+      }
+      
+      // Verificar se dimensões permanecem iguais
+      if (ImageWidth(rotated_180) == ImageWidth(test_rotate) && 
+          ImageHeight(rotated_180) == ImageHeight(test_rotate)) {
+        printf("SUCCESS: Dimensões da rotação 180° estão corretas!\n");
+      } else {
+        printf("ERRO: Dimensões da rotação 180° incorretas!\n");
+      }
+    } else {
+      printf("ERRO: Falha na rotação 180° CW!\n");
+    }
+    
+    // Rotação dupla 90° (deve ser igual a 180°)
+    printf("\nTeste de consistência (90° + 90° = 180°):\n");
+    if (rotated_90 != NULL) {
+      Image double_90 = ImageRotate90CW(rotated_90);
+      
+      if (double_90 != NULL && rotated_180 != NULL) {
+        int are_equal = ImageIsEqual(double_90, rotated_180);
+        printf("Duas rotações 90° vs Uma rotação 180°: %s\n", 
+               are_equal ? "IGUAIS" : "DIFERENTES");
+        
+        if (are_equal) {
+          printf("SUCCESS: Rotações são consistentes!\n");
+        } else {
+          printf("AVISO: Rotações podem ter diferenças na implementação\n");
+        }
+        
+        ImageDestroy(&double_90);
+      }
+    }
+    
+    // Rotação quádrupla 90° (deve voltar ao original)
+    printf("\nTeste de rotação completa (4 x 90° = 360°):\n");
+    if (rotated_90 != NULL) {
+      Image temp1 = ImageRotate90CW(rotated_90);   // 180°
+      Image temp2 = temp1 ? ImageRotate90CW(temp1) : NULL; // 270°
+      Image full_rotation = temp2 ? ImageRotate90CW(temp2) : NULL; // 360° = 0°
+      
+      if (full_rotation != NULL) {
+        int back_to_original = ImageIsEqual(test_rotate, full_rotation);
+        printf("4 rotações 90° vs Original: %s\n", 
+               back_to_original ? "IGUAIS" : "DIFERENTES");
+        
+        if (back_to_original) {
+          printf("SUCCESS: Rotação completa retorna ao original!\n");
+        } else {
+          printf("AVISO: Rotação completa difere do original\n");
+        }
+        
+        if (ImageSavePPM(full_rotation, "img/full_rotation.ppm") == 0) {
+          printf("SUCCESS: Rotação completa salva em img/full_rotation.ppm!\n");
+        }
+        
+        ImageDestroy(&temp1);
+        ImageDestroy(&temp2);
+        ImageDestroy(&full_rotation);
+      }
+    }
+    
+    ImageDestroy(&rotated_90);
+    ImageDestroy(&rotated_180);
+    ImageDestroy(&test_rotate);
+    printf("SUCCESS: Imagens de teste de rotação destruídas!\n");
+    
+  } else {
+    printf("ERRO: Falha ao criar imagem de teste!\n");
+  }
+  
+  printf("=====================================\n");
+  printf("TESTES DE ROTAÇÃO COMPLETADOS!\n");
+  printf("=====================================\n");
+
   // ============== FIM PARTE ADICIONADA ==============
 
   ImageDestroy(&white_image);

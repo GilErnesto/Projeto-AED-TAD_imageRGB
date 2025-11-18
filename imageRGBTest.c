@@ -237,6 +237,7 @@ int main(int argc, char* argv[]) {
   test_imageEqual_performance(50, "50x50");
   test_imageEqual_performance(100, "100x100");
   test_imageEqual_performance(200, "200x200");
+  test_imageEqual_performance(1200, "1200x1200");
 
   // ============== TESTES DE ROTAÇÃO ==============
   printf("13) Testes das Funções de Rotação\n");

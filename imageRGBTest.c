@@ -19,6 +19,412 @@
 #include "imageRGB.h"
 #include "instrumentation.h"
 
+
+// ======================= TESTES FEITOS POR BERNARDO REIS E FERNANDO =======================
+
+// Test result tracking
+static int tests_passed = 0;
+static int tests_failed = 0;
+
+// Helper macros for testing
+#define TEST_START(name) printf("\n=== TEST: %s ===\n", name)
+#define TEST_ASSERT(condition, message) \
+  do { \
+    if (condition) { \
+      printf("  ✓ PASS: %s\n", message); \
+      tests_passed++; \
+    } else { \
+      printf("  ✗ FAIL: %s\n", message); \
+      tests_failed++; \
+    } \
+  } while(0)
+#define TEST_END() printf("---\n")
+
+// Test functions
+void test_image_creation() {
+  TEST_START("Image Creation");
+  
+  Image img1 = ImageCreate(100, 100);
+  TEST_ASSERT(img1 != NULL, "ImageCreate returns non-NULL");
+  TEST_ASSERT(ImageWidth(img1) == 100, "Image width is correct");
+  TEST_ASSERT(ImageHeight(img1) == 100, "Image height is correct");
+  TEST_ASSERT(ImageColors(img1) == 2, "Image has 2 initial colors (white, black)");
+  ImageDestroy(&img1);
+  TEST_ASSERT(img1 == NULL, "ImageDestroy sets pointer to NULL");
+  
+  Image img2 = ImageCreateChess(150, 120, 30, 0x000000);
+  TEST_ASSERT(img2 != NULL, "ImageCreateChess returns non-NULL");
+  TEST_ASSERT(ImageWidth(img2) == 150, "Chess image width is correct");
+  TEST_ASSERT(ImageHeight(img2) == 120, "Chess image height is correct");
+  ImageDestroy(&img2);
+  
+  Image img3 = ImageCreatePalete(128, 128, 4);
+  TEST_ASSERT(img3 != NULL, "ImageCreatePalete returns non-NULL");
+  TEST_ASSERT(ImageColors(img3) == 1000, "Palete has full LUT (1000 colors)");
+  ImageDestroy(&img3);
+  
+  TEST_END();
+}
+
+void test_image_copy() {
+  TEST_START("Image Copy");
+  
+  Image original = ImageCreateChess(50, 50, 10, 0xff0000);
+  Image copy = ImageCopy(original);
+  
+  TEST_ASSERT(copy != NULL, "ImageCopy returns non-NULL");
+  TEST_ASSERT(ImageWidth(copy) == ImageWidth(original), "Copy has same width");
+  TEST_ASSERT(ImageHeight(copy) == ImageHeight(original), "Copy has same height");
+  TEST_ASSERT(ImageColors(copy) == ImageColors(original), "Copy has same number of colors");
+  TEST_ASSERT(ImageIsEqual(original, copy), "Copy is equal to original");
+  TEST_ASSERT(copy != original, "Copy is a different object");
+  
+  ImageDestroy(&original);
+  ImageDestroy(&copy);
+  
+  TEST_END();
+}
+
+void test_image_comparison() {
+  TEST_START("Image Comparison");
+  
+  Image img1 = ImageCreate(50, 50);
+  Image img2 = ImageCreate(50, 50);
+  Image img3 = ImageCreate(60, 60);
+  Image img4 = ImageCreateChess(50, 50, 10, 0x000000);
+  
+  TEST_ASSERT(ImageIsEqual(img1, img2), "Two identical blank images are equal");
+  TEST_ASSERT(!ImageIsEqual(img1, img3), "Images with different dimensions are not equal");
+  TEST_ASSERT(!ImageIsEqual(img1, img4), "Images with different content are not equal");
+  TEST_ASSERT(ImageIsDifferent(img1, img4), "ImageIsDifferent works correctly");
+  
+  ImageDestroy(&img1);
+  ImageDestroy(&img2);
+  ImageDestroy(&img3);
+  ImageDestroy(&img4);
+  
+  TEST_END();
+}
+
+void test_rotation_90() {
+  TEST_START("Image Rotation 90°");
+  
+  // Create a simple 3x2 test pattern
+  Image original = ImageCreate(3, 2);
+  Image rotated = ImageRotate90CW(original);
+  
+  TEST_ASSERT(rotated != NULL, "ImageRotate90CW returns non-NULL");
+  TEST_ASSERT(ImageWidth(rotated) == ImageHeight(original), "Rotated width equals original height");
+  TEST_ASSERT(ImageHeight(rotated) == ImageWidth(original), "Rotated height equals original width");
+  TEST_ASSERT(ImageWidth(rotated) == 2, "Rotated image has width 2");
+  TEST_ASSERT(ImageHeight(rotated) == 3, "Rotated image has height 3");
+  
+  // Test that rotating 4 times returns to original
+  Image rot1 = ImageRotate90CW(original);
+  Image rot2 = ImageRotate90CW(rot1);
+  Image rot3 = ImageRotate90CW(rot2);
+  Image rot4 = ImageRotate90CW(rot3);
+  
+  TEST_ASSERT(ImageIsEqual(original, rot4), "Four 90° rotations return to original");
+  
+  ImageDestroy(&original);
+  ImageDestroy(&rotated);
+  ImageDestroy(&rot1);
+  ImageDestroy(&rot2);
+  ImageDestroy(&rot3);
+  ImageDestroy(&rot4);
+  
+  // Create visual example with chess pattern
+  printf("  → Generating rotation examples...\n");
+  Image chess_original = ImageCreateChess(80, 60, 20, 0x000000);
+  ImageSavePBM(chess_original, "img/01_rotation_original.pbm");
+  
+  Image chess_90 = ImageRotate90CW(chess_original);
+  ImageSavePBM(chess_90, "img/02_rotation_90cw.pbm");
+  
+  Image chess_180 = ImageRotate90CW(chess_90);
+  ImageSavePBM(chess_180, "img/03_rotation_180cw.pbm");
+  
+  Image chess_270 = ImageRotate90CW(chess_180);
+  ImageSavePBM(chess_270, "img/04_rotation_270cw.pbm");
+  
+  ImageDestroy(&chess_original);
+  ImageDestroy(&chess_90);
+  ImageDestroy(&chess_180);
+  ImageDestroy(&chess_270);
+  
+  TEST_END();
+}
+
+void test_rotation_180() {
+  TEST_START("Image Rotation 180°");
+  
+  Image original = ImageCreate(50, 30);
+  Image rotated = ImageRotate180CW(original);
+  
+  TEST_ASSERT(rotated != NULL, "ImageRotate180CW returns non-NULL");
+  TEST_ASSERT(ImageWidth(rotated) == ImageWidth(original), "Rotated width equals original width");
+  TEST_ASSERT(ImageHeight(rotated) == ImageHeight(original), "Rotated height equals original height");
+  
+  // Test that rotating twice returns to original
+  Image rot2 = ImageRotate180CW(rotated);
+  TEST_ASSERT(ImageIsEqual(original, rot2), "Two 180° rotations return to original");
+  
+  ImageDestroy(&original);
+  ImageDestroy(&rotated);
+  ImageDestroy(&rot2);
+  
+  // Create visual example
+  printf("  → Generating 180° rotation example...\n");
+  Image chess = ImageCreateChess(100, 60, 20, 0x000000);
+  ImageSavePBM(chess, "img/05_rotation180_original.pbm");
+  
+  Image chess_180 = ImageRotate180CW(chess);
+  ImageSavePBM(chess_180, "img/06_rotation180_result.pbm");
+  
+  ImageDestroy(&chess);
+  ImageDestroy(&chess_180);
+  
+  TEST_END();
+}
+
+void test_file_operations() {
+  TEST_START("File I/O Operations");
+  
+  // Test PBM
+  Image chess = ImageCreateChess(150, 120, 30, 0x000000);
+  int result = ImageSavePBM(chess, "img/07_chess_bw.pbm");
+  TEST_ASSERT(result == 0, "ImageSavePBM succeeds");
+  
+  Image loaded_pbm = ImageLoadPBM("img/07_chess_bw.pbm");
+  TEST_ASSERT(loaded_pbm != NULL, "ImageLoadPBM loads saved file");
+  TEST_ASSERT(ImageIsEqual(chess, loaded_pbm), "Loaded PBM equals original");
+  
+  ImageDestroy(&chess);
+  ImageDestroy(&loaded_pbm);
+  
+  // Test PPM
+  Image chess_color = ImageCreateChess(80, 80, 20, 0xff0000);
+  result = ImageSavePPM(chess_color, "img/08_chess_red.ppm");
+  TEST_ASSERT(result == 0, "ImageSavePPM succeeds");
+  
+  Image loaded_ppm = ImageLoadPPM("img/08_chess_red.ppm");
+  TEST_ASSERT(loaded_ppm != NULL, "ImageLoadPPM loads saved file");
+  TEST_ASSERT(ImageIsEqual(chess_color, loaded_ppm), "Loaded PPM equals original");
+  
+  ImageDestroy(&chess_color);
+  ImageDestroy(&loaded_ppm);
+  
+  // Create additional color examples
+  printf("  → Generating color pattern examples...\n");
+  Image chess_blue = ImageCreateChess(80, 80, 20, 0x0000ff);
+  ImageSavePPM(chess_blue, "img/09_chess_blue.ppm");
+  ImageDestroy(&chess_blue);
+  
+  Image chess_green = ImageCreateChess(80, 80, 20, 0x00ff00);
+  ImageSavePPM(chess_green, "img/10_chess_green.ppm");
+  ImageDestroy(&chess_green);
+  
+  Image palete = ImageCreatePalete(128, 128, 8);
+  ImageSavePPM(palete, "img/11_color_palete.ppm");
+  ImageDestroy(&palete);
+  
+  TEST_END();
+}
+
+void test_region_filling_stack() {
+  TEST_START("Region Filling with STACK");
+  
+  Image img = ImageCreate(10, 10);
+  int pixels_filled = ImageRegionFillingWithSTACK(img, 5, 5, BLACK);
+  
+  TEST_ASSERT(pixels_filled == 100, "STACK fills all 100 pixels in blank image");
+  
+  // Create a chess pattern and test filling one square
+  Image chess = ImageCreateChess(20, 20, 5, 0x000000);
+  int filled = ImageRegionFillingWithSTACK(chess, 2, 2, 2);
+  TEST_ASSERT(filled == 25, "STACK fills one chess square (5x5=25 pixels)");
+  
+  ImageDestroy(&img);
+  ImageDestroy(&chess);
+  
+  // Visual example
+  printf("  → Generating region filling example (STACK)...\n");
+  Image demo = ImageCreateChess(100, 100, 20, 0x000000);
+  ImageSavePBM(demo, "img/12_region_original.pbm");
+  
+  ImageRegionFillingWithSTACK(demo, 10, 10, 1);
+  ImageSavePBM(demo, "img/13_region_filled_stack.pbm");
+  ImageDestroy(&demo);
+  
+  TEST_END();
+}
+
+void test_region_filling_queue() {
+  TEST_START("Region Filling with QUEUE");
+  
+  Image img = ImageCreate(10, 10);
+  int pixels_filled = ImageRegionFillingWithQUEUE(img, 5, 5, BLACK);
+  
+  TEST_ASSERT(pixels_filled == 100, "QUEUE fills all 100 pixels in blank image");
+  
+  // Create a chess pattern and test filling one square
+  Image chess = ImageCreateChess(20, 20, 5, 0x000000);
+  int filled = ImageRegionFillingWithQUEUE(chess, 2, 2, 2);
+  TEST_ASSERT(filled == 25, "QUEUE fills one chess square (5x5=25 pixels)");
+  
+  ImageDestroy(&img);
+  ImageDestroy(&chess);
+  
+  // Visual example
+  printf("  → Generating region filling example (QUEUE)...\n");
+  Image demo = ImageCreateChess(100, 100, 20, 0x000000);
+  ImageRegionFillingWithQUEUE(demo, 10, 10, 1);
+  ImageSavePBM(demo, "img/14_region_filled_queue.pbm");
+  ImageDestroy(&demo);
+  
+  TEST_END();
+}
+
+void test_region_filling_recursive() {
+  TEST_START("Region Filling RECURSIVE");
+  
+  Image img = ImageCreate(10, 10);
+  int pixels_filled = ImageRegionFillingRecursive(img, 5, 5, BLACK);
+  
+  TEST_ASSERT(pixels_filled == 100, "Recursive fills all 100 pixels in blank image");
+  
+  // Create a chess pattern and test filling one square
+  Image chess = ImageCreateChess(20, 20, 5, 0x000000);
+  int filled = ImageRegionFillingRecursive(chess, 2, 2, 2);
+  TEST_ASSERT(filled == 25, "Recursive fills one chess square (5x5=25 pixels)");
+  
+  ImageDestroy(&img);
+  ImageDestroy(&chess);
+  
+  // Visual example
+  printf("  → Generating region filling example (RECURSIVE)...\n");
+  Image demo = ImageCreateChess(100, 100, 20, 0x000000);
+  ImageRegionFillingRecursive(demo, 10, 10, 1);
+  ImageSavePBM(demo, "img/15_region_filled_recursive.pbm");
+  ImageDestroy(&demo);
+  
+  TEST_END();
+}
+
+void test_region_filling_consistency() {
+  TEST_START("Region Filling Consistency (Stack vs Queue vs Recursive)");
+  
+  // Test that all three methods produce the same pixel count
+  Image img1 = ImageCreateChess(30, 30, 6, 0x000000);
+  Image img2 = ImageCopy(img1);
+  Image img3 = ImageCopy(img1);
+  
+  int count_stack = ImageRegionFillingWithSTACK(img1, 3, 3, 2);
+  int count_queue = ImageRegionFillingWithQUEUE(img2, 3, 3, 2);
+  int count_recursive = ImageRegionFillingRecursive(img3, 3, 3, 2);
+  
+  TEST_ASSERT(count_stack == count_queue, "STACK and QUEUE fill same number of pixels");
+  TEST_ASSERT(count_queue == count_recursive, "QUEUE and RECURSIVE fill same number of pixels");
+  TEST_ASSERT(count_stack == 36, "All methods fill correct region size (6x6=36 pixels)");
+  
+  // Note: The final images may differ because different algorithms
+  // visit pixels in different orders, but they all fill the same region
+  
+  ImageDestroy(&img1);
+  ImageDestroy(&img2);
+  ImageDestroy(&img3);
+  
+  TEST_END();
+}
+
+void test_image_segmentation() {
+  TEST_START("Image Segmentation");
+  
+  // Create a chess pattern (multiple regions)
+  Image chess = ImageCreateChess(40, 40, 10, 0x000000);
+  
+  // Test segmentation with STACK
+  Image chess_copy1 = ImageCopy(chess);
+  int regions_stack = ImageSegmentation(chess_copy1, ImageRegionFillingWithSTACK);
+  TEST_ASSERT(regions_stack > 0, "STACK segmentation finds regions");
+  TEST_ASSERT(regions_stack == 8, "Chess 40x40 with 10px squares has 8 white regions");
+  
+  // Test segmentation with QUEUE
+  Image chess_copy2 = ImageCopy(chess);
+  int regions_queue = ImageSegmentation(chess_copy2, ImageRegionFillingWithQUEUE);
+  TEST_ASSERT(regions_queue == regions_stack, "QUEUE segmentation finds same number of regions");
+  
+  // Test segmentation with Recursive
+  Image chess_copy3 = ImageCopy(chess);
+  int regions_recursive = ImageSegmentation(chess_copy3, ImageRegionFillingRecursive);
+  TEST_ASSERT(regions_recursive == regions_stack, "Recursive segmentation finds same number of regions");
+  
+  // Visual examples
+  printf("  → Generating segmentation examples...\n");
+  ImageSavePBM(chess, "img/16_segmentation_original.pbm");
+  ImageSavePPM(chess_copy1, "img/17_segmentation_stack.ppm");
+  ImageSavePPM(chess_copy2, "img/18_segmentation_queue.ppm");
+  ImageSavePPM(chess_copy3, "img/19_segmentation_recursive.ppm");
+  
+  ImageDestroy(&chess);
+  ImageDestroy(&chess_copy1);
+  ImageDestroy(&chess_copy2);
+  ImageDestroy(&chess_copy3);
+  
+  // Test segmentation on a solid image (1 region)
+  Image solid = ImageCreate(50, 50);
+  int solid_regions = ImageSegmentation(solid, ImageRegionFillingWithSTACK);
+  TEST_ASSERT(solid_regions == 1, "Solid white image has 1 region");
+  ImageSavePPM(solid, "img/20_segmentation_solid.ppm");
+  ImageDestroy(&solid);
+  
+  // More complex example
+  printf("  → Generating complex segmentation example...\n");
+  Image complex = ImageCreateChess(120, 80, 15, 0x000000);
+  ImageSavePBM(complex, "img/21_complex_original.pbm");
+  
+  Image complex_seg = ImageCopy(complex);
+  int complex_regions = ImageSegmentation(complex_seg, ImageRegionFillingWithQUEUE);
+  printf("  → Found %d regions in complex pattern\n", complex_regions);
+  ImageSavePPM(complex_seg, "img/22_complex_segmented.ppm");
+  
+  ImageDestroy(&complex);
+  ImageDestroy(&complex_seg);
+  
+  TEST_END();
+}
+
+void test_edge_cases() {
+  TEST_START("Edge Cases");
+  
+  // Test small images
+  Image tiny = ImageCreate(1, 1);
+  TEST_ASSERT(tiny != NULL, "Can create 1x1 image");
+  TEST_ASSERT(ImageWidth(tiny) == 1, "1x1 image has width 1");
+  TEST_ASSERT(ImageHeight(tiny) == 1, "1x1 image has height 1");
+  ImageDestroy(&tiny);
+  
+  // Test pixel validation
+  Image img = ImageCreate(10, 10);
+  TEST_ASSERT(ImageIsValidPixel(img, 0, 0), "Top-left pixel is valid");
+  TEST_ASSERT(ImageIsValidPixel(img, 9, 9), "Bottom-right pixel is valid");
+  TEST_ASSERT(!ImageIsValidPixel(img, 10, 10), "Pixel at boundary is invalid");
+  TEST_ASSERT(!ImageIsValidPixel(img, 11, 11), "Pixel beyond boundary is invalid");
+  TEST_ASSERT(!ImageIsValidPixel(img, -1, 0), "Negative pixel is invalid");
+  ImageDestroy(&img);
+  
+  // Test region filling on same color
+  Image same = ImageCreate(10, 10);
+  ImageRegionFillingWithSTACK(same, 5, 5, BLACK);
+  int refill = ImageRegionFillingWithSTACK(same, 5, 5, BLACK);
+  TEST_ASSERT(refill == 0, "Re-filling with same color fills 0 pixels");
+  ImageDestroy(&same);
+  
+  TEST_END();
+}
+
+// acaba aqui
 // ============== PARTE ADICIONADA ==============
   void test_imageEqual_performance(uint32 size, const char* size_name){
     printf("\n--- Teste %s ---\n", size_name);
@@ -81,6 +487,30 @@ int main(int argc, char* argv[]) {
   }
 
   ImageInit();
+
+  printf("\n");
+  printf("╔════════════════════════════════════════════════╗\n");
+  printf("║     RGB Image Module - Comprehensive Tests    ║\n");
+  printf("╚════════════════════════════════════════════════╝\n");
+
+  // Run comprehensive test suites
+  test_image_creation();
+  test_image_copy();
+  test_image_comparison();
+  test_rotation_90();
+  test_rotation_180();
+  test_file_operations();
+  test_region_filling_stack();
+  test_region_filling_queue();
+  test_region_filling_recursive();
+  test_region_filling_consistency();
+  test_image_segmentation();
+  test_edge_cases();
+
+  printf("\n");
+  printf("╔════════════════════════════════════════════════╗\n");
+  printf("║              ORIGINAL TESTS                    ║\n");
+  printf("╚════════════════════════════════════════════════╝\n");
 
   // Creating and displaying some images
 
@@ -241,7 +671,6 @@ int main(int argc, char* argv[]) {
 
   // ============== TESTES DE ROTAÇÃO ==============
   printf("13) Testes das Funções de Rotação\n");
-  printf("=====================================\n");
   
   // imagem de teste
   printf("Criando imagem de teste 8x6 para rotações:\n");
@@ -383,9 +812,27 @@ int main(int argc, char* argv[]) {
   ImageDestroy(&image_1);
   ImageDestroy(&image_2);
   ImageDestroy(&image_3);
-  
-  printf("SUCCESS: Todas as imagens destruídas com sucesso!\n");
-  printf("TODOS OS TESTES COMPLETADOS COM SUCESSO!\n");
 
-  return 0;
+  // Print comprehensive test summary
+  printf("\n");
+  printf("╔════════════════════════════════════════════════╗\n");
+  printf("║              TEST SUMMARY                      ║\n");
+  printf("╠════════════════════════════════════════════════╣\n");
+  printf("║  Total Tests:  %-4d                           ║\n", tests_passed + tests_failed);
+  printf("║  Passed:       %-4d ✓                         ║\n", tests_passed);
+  printf("║  Failed:       %-4d ✗                         ║\n", tests_failed);
+  printf("╚════════════════════════════════════════════════╝\n");
+  printf("\n");
+
+  if (tests_failed == 0) {
+    printf("🎉 All tests passed successfully!\n\n");
+    printf("📁 Output images saved to: ./img/\n");
+    printf("   Use an image viewer to see the results.\n");
+    printf("   For PBM/PPM files, try: gimp, eog, or convert to PNG.\n\n");
+    printf("TODOS OS TESTES COMPLETADOS COM SUCESSO!\n");
+    return 0;
+  } else {
+    printf("⚠️  Some tests failed. Please review the output above.\n\n");
+    return 1;
+  }
 }

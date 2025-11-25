@@ -12,13 +12,14 @@ LEMBRAR DE TIRAR TUDO QUE DIZ  //RETIRAR NA FASE FINAL
 
 - Complexidade computacional da função ImageIsEqual - GIl
 - Relatório - Gil
-- ImageRotate90CW  - Rodrigo
-- ImageRotate180CW - Rodrigo
-- ImageRegionFillingRecursive 
-- ImageSegmentation - Rodrigo
+
 
 ***Features Prontas***
 - ImageCopy
 - ImageIsEqual
 - ImageRegionFillingWithSTACK
 - ImageRegionFillingWithQUEUE
+- ImageRotate90CW  
+- ImageRotate180CW 
+- ImageRegionFillingRecursive 
+- ImageSegmentation 

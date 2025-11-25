@@ -712,11 +712,36 @@ int ImageRegionFillingRecursive(Image img, int u, int v, uint16 label) {
   assert(img != NULL);
   assert(ImageIsValidPixel(img, u, v));
   assert(label < FIXED_LUT_SIZE);
-
-  // TO BE COMPLETED
-  // ...
-
-  return 0;
+  
+  // cor original do pixel
+  uint16 original_label = img->image[v][u];
+  
+  // se a cor original for igual à nova cor -> nada a fazer
+  if (original_label == label) {
+    return 0;
+  }
+  
+  // função recursiva auxiliar
+  int fillRecursive(Image img, int x, int y, uint16 original, uint16 new_label) {
+    // base case: pixel inválido ou cor diferente da original
+    if (!ImageIsValidPixel(img, x, y) || img->image[y][x] != original) {
+      return 0;
+    }
+    
+    // preencher o pixel
+    img->image[y][x] = new_label;
+    int count = 1;
+    
+    // chamar recursivamente para os 4 vizinhos
+    count += fillRecursive(img, x + 1, y, original, new_label);  // direita
+    count += fillRecursive(img, x - 1, y, original, new_label);  // esquerda
+    count += fillRecursive(img, x, y + 1, original, new_label);  // baixo
+    count += fillRecursive(img, x, y - 1, original, new_label);  // cima
+    
+    return count;
+  }
+  
+  return fillRecursive(img, u, v, original_label, label);
 }
 
 /// Region growing using a STACK of pixel coordinates to
@@ -758,9 +783,34 @@ int ImageRegionFillingWithQUEUE(Image img, int u, int v, uint16 label) {
 int ImageSegmentation(Image img, FillingFunction fillFunct) {
   assert(img != NULL);
   assert(fillFunct != NULL);
+  
+  int region_count = 0;
+  uint16 current_label = 1;  
+  rgb_t current_color = 0;  
 
-  // TO BE COMPLETED
-  // ...
-
-  return 0;
+  for (int y = 0; y < img->height; y++) {
+    for (int x = 0; x < img->width; x++) {
+      // se o pixel for branco (fundo)
+      if (img->image[y][x] == 0) {
+        // gerar uma cor nova
+        current_color = GenerateNextColor(current_color);
+        
+        // preencher a região com a cor nova
+        int pixels_filled = fillFunct(img, x, y, current_label);
+        
+        
+        if (pixels_filled > 0) {
+          region_count++;
+          current_label++;
+          
+          // verificar se ultrapassou o limite do LUT
+          if (current_label >= FIXED_LUT_SIZE) {
+            return region_count;
+          }
+        }
+      }
+    }
+  }
+  
+  return region_count;
 }

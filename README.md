@@ -11,13 +11,15 @@ VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=ngtystr
 LEMBRAR DE TIRAR TUDO QUE DIZ  //RETIRAR NA FASE FINAL
 
 - Complexidade computacional da função ImageIsEqual - GIl
-- ImageRotate90CW  - Rodrigo
-- ImageRotate180CW - Rodrigo
-- ImageRegionFillingRecursive 
-- ImageSegmentation - Rodrigo
+- Relatório - Gil
+
 
 ***Features Prontas***
 - ImageCopy
 - ImageIsEqual
 - ImageRegionFillingWithSTACK
 - ImageRegionFillingWithQUEUE
+- ImageRotate90CW  
+- ImageRotate180CW 
+- ImageRegionFillingRecursive 
+- ImageSegmentation 

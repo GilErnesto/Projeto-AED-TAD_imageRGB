@@ -328,12 +328,186 @@ void test_region_filling_consistency() {
   TEST_ASSERT(count_queue == count_recursive, "QUEUE and RECURSIVE fill same number of pixels");
   TEST_ASSERT(count_stack == 36, "All methods fill correct region size (6x6=36 pixels)");
   
-  // Note: The final images may differ because different algorithms
-  // visit pixels in different orders, but they all fill the same region
+  // Nota: As imagens podem diferir na ordem dos pixels, mas todas preenchem a mesma região.
   
   ImageDestroy(&img1);
   ImageDestroy(&img2);
   ImageDestroy(&img3);
+  
+  TEST_END();
+}
+
+void test_fill_methods_performance() {
+  TEST_START("Fill Methods Performance Comparison");
+  
+  printf("  Testing different image sizes and patterns...\n");
+  
+  // Small blank image
+  printf("\n  → Blank 50x50 image:\n");
+  Image blank1 = ImageCreate(50, 50);
+  Image blank2 = ImageCopy(blank1);
+  Image blank3 = ImageCopy(blank1);
+  
+  InstrReset();
+  int c1 = ImageRegionFillingRecursive(blank1, 25, 25, 1);
+  printf("    Recursive: %d pixels, ops: %lu\n", c1, InstrCount[0]);
+  
+  InstrReset();
+  int c2 = ImageRegionFillingWithSTACK(blank2, 25, 25, 1);
+  printf("    Stack:     %d pixels, ops: %lu\n", c2, InstrCount[0]);
+  
+  InstrReset();
+  int c3 = ImageRegionFillingWithQUEUE(blank3, 25, 25, 1);
+  printf("    Queue:     %d pixels, ops: %lu\n", c3, InstrCount[0]);
+  
+  TEST_ASSERT(c1 == c2 && c2 == c3, "All methods fill same count (blank 50x50)");
+  TEST_ASSERT(c1 == 2500, "Fills entire 50x50 image (2500 pixels)");
+  
+  ImageDestroy(&blank1);
+  ImageDestroy(&blank2);
+  ImageDestroy(&blank3);
+  
+  // Chess pattern - single region
+  printf("\n  → Chess 40x40 (edge=20) single region:\n");
+  Image chess1 = ImageCreateChess(40, 40, 20, 0x000000);
+  Image chess2 = ImageCopy(chess1);
+  Image chess3 = ImageCopy(chess1);
+  
+  InstrReset();
+  c1 = ImageRegionFillingRecursive(chess1, 2, 2, 5);
+  printf("    Recursive: %d pixels, ops: %lu\n", c1, InstrCount[0]);
+  
+  InstrReset();
+  c2 = ImageRegionFillingWithSTACK(chess2, 2, 2, 5);
+  printf("    Stack:     %d pixels, ops: %lu\n", c2, InstrCount[0]);
+  
+  InstrReset();
+  c3 = ImageRegionFillingWithQUEUE(chess3, 2, 2, 5);
+  printf("    Queue:     %d pixels, ops: %lu\n", c3, InstrCount[0]);
+  
+  TEST_ASSERT(c1 == c2 && c2 == c3, "All methods fill same count (chess region)");
+  TEST_ASSERT(c1 == 400, "Fills 20x20 chess square (400 pixels)");
+  TEST_ASSERT(ImageIsEqual(chess1, chess2) && ImageIsEqual(chess2, chess3), 
+              "All methods produce identical images");
+  
+  ImageDestroy(&chess1);
+  ImageDestroy(&chess2);
+  ImageDestroy(&chess3);
+  
+  // Complex pattern
+  printf("\n  → Chess 60x60 (edge=10) complex:\n");
+  Image complex1 = ImageCreateChess(60, 60, 10, 0x000000);
+  Image complex2 = ImageCopy(complex1);
+  Image complex3 = ImageCopy(complex1);
+  
+  InstrReset();
+  c1 = ImageRegionFillingRecursive(complex1, 5, 5, 7);
+  printf("    Recursive: %d pixels, ops: %lu\n", c1, InstrCount[0]);
+  
+  InstrReset();
+  c2 = ImageRegionFillingWithSTACK(complex2, 5, 5, 7);
+  printf("    Stack:     %d pixels, ops: %lu\n", c2, InstrCount[0]);
+  
+  InstrReset();
+  c3 = ImageRegionFillingWithQUEUE(complex3, 5, 5, 7);
+  printf("    Queue:     %d pixels, ops: %lu\n", c3, InstrCount[0]);
+  
+  TEST_ASSERT(c1 == c2 && c2 == c3, "All methods fill same count (complex)");
+  
+  // Nota: A ordem de visita do pixel pode variar entre os métodos.
+  
+  ImageDestroy(&complex1);
+  ImageDestroy(&complex2);
+  ImageDestroy(&complex3);
+  
+  TEST_END();
+}
+
+void test_segmentation_comparison() {
+  TEST_START("Image Segmentation Method Comparison");
+  
+  printf("  Comparing segmentation with different fill methods...\n");
+  
+  // Simple chess pattern
+  printf("\n  → Chess 40x40 (edge=10) - 8 regions:\n");
+  Image base = ImageCreateChess(40, 40, 10, 0x000000);
+  
+  Image seg1 = ImageCopy(base);
+  InstrReset();
+  int regions_rec = ImageSegmentation(seg1, ImageRegionFillingRecursive);
+  printf("    Recursive: %d regions, ops: %lu\n", regions_rec, InstrCount[0]);
+  
+  Image seg2 = ImageCopy(base);
+  InstrReset();
+  int regions_stack = ImageSegmentation(seg2, ImageRegionFillingWithSTACK);
+  printf("    Stack:     %d regions, ops: %lu\n", regions_stack, InstrCount[0]);
+  
+  Image seg3 = ImageCopy(base);
+  InstrReset();
+  int regions_queue = ImageSegmentation(seg3, ImageRegionFillingWithQUEUE);
+  printf("    Queue:     %d regions, ops: %lu\n", regions_queue, InstrCount[0]);
+  
+  TEST_ASSERT(regions_rec == regions_stack, "Recursive == Stack (region count)");
+  TEST_ASSERT(regions_stack == regions_queue, "Stack == Queue (region count)");
+  TEST_ASSERT(regions_rec == 8, "Correct number of regions found (8)");
+  
+  ImageDestroy(&base);
+  ImageDestroy(&seg1);
+  ImageDestroy(&seg2);
+  ImageDestroy(&seg3);
+  
+  // More complex pattern
+  printf("\n  → Chess 80x80 (edge=8) - 50 regions:\n");
+  base = ImageCreateChess(80, 80, 8, 0x000000);
+  
+  seg1 = ImageCopy(base);
+  InstrReset();
+  regions_rec = ImageSegmentation(seg1, ImageRegionFillingRecursive);
+  printf("    Recursive: %d regions, ops: %lu\n", regions_rec, InstrCount[0]);
+  
+  seg2 = ImageCopy(base);
+  InstrReset();
+  regions_stack = ImageSegmentation(seg2, ImageRegionFillingWithSTACK);
+  printf("    Stack:     %d regions, ops: %lu\n", regions_stack, InstrCount[0]);
+  
+  seg3 = ImageCopy(base);
+  InstrReset();
+  regions_queue = ImageSegmentation(seg3, ImageRegionFillingWithQUEUE);
+  printf("    Queue:     %d regions, ops: %lu\n", regions_queue, InstrCount[0]);
+  
+  TEST_ASSERT(regions_rec == regions_stack, "Recursive == Stack (complex)");
+  TEST_ASSERT(regions_stack == regions_queue, "Stack == Queue (complex)");
+  TEST_ASSERT(regions_rec == 50, "Correct number of complex regions (50)");
+  
+  ImageDestroy(&base);
+  ImageDestroy(&seg1);
+  ImageDestroy(&seg2);
+  ImageDestroy(&seg3);
+  
+  // Single region (blank image)
+  printf("\n  → Blank 30x30 - 1 region:\n");
+  base = ImageCreate(30, 30);
+  
+  seg1 = ImageCopy(base);
+  regions_rec = ImageSegmentation(seg1, ImageRegionFillingRecursive);
+  
+  seg2 = ImageCopy(base);
+  regions_stack = ImageSegmentation(seg2, ImageRegionFillingWithSTACK);
+  
+  seg3 = ImageCopy(base);
+  regions_queue = ImageSegmentation(seg3, ImageRegionFillingWithQUEUE);
+  
+  printf("    Recursive: %d region\n", regions_rec);
+  printf("    Stack:     %d region\n", regions_stack);
+  printf("    Queue:     %d region\n", regions_queue);
+  
+  TEST_ASSERT(regions_rec == 1 && regions_stack == 1 && regions_queue == 1, 
+              "Single region detected correctly");
+  
+  ImageDestroy(&base);
+  ImageDestroy(&seg1);
+  ImageDestroy(&seg2);
+  ImageDestroy(&seg3);
   
   TEST_END();
 }
@@ -504,7 +678,9 @@ int main(int argc, char* argv[]) {
   test_region_filling_queue();
   test_region_filling_recursive();
   test_region_filling_consistency();
+  test_fill_methods_performance();
   test_image_segmentation();
+  test_segmentation_comparison();
   test_edge_cases();
 
   printf("\n");

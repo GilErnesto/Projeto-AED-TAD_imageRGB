@@ -713,6 +713,27 @@ int ImageIsValidPixel(const Image img, int u, int v) {
 
 /// Each function carries out a different version of the algorithm.
 
+
+// função recursiva auxiliar
+int fillRecursive(Image img, int x, int y, uint16 original, uint16 new_label) {
+  // base case: pixel inválido ou cor diferente da original
+  if (!ImageIsValidPixel(img, x, y) || img->image[y][x] != original) {
+    return 0;
+  }
+  
+  // preencher o pixel
+  img->image[y][x] = new_label;
+  int count = 1;
+  
+  // chamar recursivamente para os 4 vizinhos
+  count += fillRecursive(img, x + 1, y, original, new_label);  // direita
+  count += fillRecursive(img, x - 1, y, original, new_label);  // esquerda
+  count += fillRecursive(img, x, y + 1, original, new_label);  // baixo
+  count += fillRecursive(img, x, y - 1, original, new_label);  // cima
+  
+  return count;
+}
+
 /// Region growing using the recursive flood-filling algorithm.
 int ImageRegionFillingRecursive(Image img, int u, int v, uint16 label) {
   assert(img != NULL);
@@ -726,27 +747,6 @@ int ImageRegionFillingRecursive(Image img, int u, int v, uint16 label) {
   if (original_label == label) {
     return 0;
   }
-  
-  // função recursiva auxiliar
-  int fillRecursive(Image img, int x, int y, uint16 original, uint16 new_label) {
-    // base case: pixel inválido ou cor diferente da original
-    if (!ImageIsValidPixel(img, x, y) || img->image[y][x] != original) {
-      return 0;
-    }
-    
-    // preencher o pixel
-    img->image[y][x] = new_label;
-    int count = 1;
-    
-    // chamar recursivamente para os 4 vizinhos
-    count += fillRecursive(img, x + 1, y, original, new_label);  // direita
-    count += fillRecursive(img, x - 1, y, original, new_label);  // esquerda
-    count += fillRecursive(img, x, y + 1, original, new_label);  // baixo
-    count += fillRecursive(img, x, y - 1, original, new_label);  // cima
-    
-    return count;
-  }
-  
   return fillRecursive(img, u, v, original_label, label);
 }
 
@@ -863,8 +863,8 @@ int ImageSegmentation(Image img, FillingFunction fillFunct) {
   uint16 current_label = 1;  
   rgb_t current_color = 0;  
 
-  for (int y = 0; y < img->height; y++) {
-    for (int x = 0; x < img->width; x++) {
+  for (uint32 y = 0; y < img->height; y++) {
+    for (uint32 x = 0; x < img->width; x++) {
       // se o pixel for branco (fundo)
       if (img->image[y][x] == 0) {
         // gerar uma cor nova

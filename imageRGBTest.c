@@ -1001,14 +1001,12 @@ int main(int argc, char* argv[]) {
   printf("\n");
 
   if (tests_failed == 0) {
-    printf("🎉 All tests passed successfully!\n\n");
-    printf("📁 Output images saved to: ./img/\n");
-    printf("   Use an image viewer to see the results.\n");
-    printf("   For PBM/PPM files, try: gimp, eog, or convert to PNG.\n\n");
+    printf("All tests passed successfully!\n\n");
+    printf("Output images saved to: ./img/\n");
     printf("TODOS OS TESTES COMPLETADOS COM SUCESSO!\n");
     return 0;
   } else {
-    printf("⚠️  Some tests failed. Please review the output above.\n\n");
+    printf("Some tests failed. Please review the output above.\n\n");
     return 1;
   }
 }
